@@ -7,11 +7,13 @@ const f = createUploadthing();
 export const ourFileRouter = {
     // Define as many FileRoutes as you like, each with a unique routeSlug
     fileUploader: f(["image", "video", "video", "audio", "blob", "pdf", "text"])
-        .onUploadComplete(async ({ file }) => {
-            console.log("file url", file.ufsUrl);
-
+        .middleware(async({files}) => {
+            console.log("these are the files: ", files);
+            return {files}
+        })
+        .onUploadComplete(async ({ file }):Promise<{file_url: string}> => {
             // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-            // return { file_url: file.ufsUrl };
+            return { file_url: file.ufsUrl };
         }),
 } satisfies FileRouter;
 

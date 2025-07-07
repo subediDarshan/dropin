@@ -3,16 +3,23 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { decodeBase64, decryptBlob } from "@/utils/crypto";
+import { useTRPC } from "@/trpc/client";
+import { useMutation} from "@tanstack/react-query";
 
 export default function DownloadPage() {
     const searchParams = useSearchParams();
+    const fileUrl = searchParams.get("url");
+    const fileType = searchParams.get("fileType");
+    const id = searchParams.get("id");
+
     const [status, setStatus] = useState("Decrypting...");
+
+    const trpc = useTRPC();
+    const deleteFileMutation = useMutation(trpc.deleteFile.mutationOptions())
 
     useEffect(() => {
         const run = async () => {
             try {
-                const fileUrl = searchParams.get("url");
-                const fileType = searchParams.get("fileType");
                 const hash = window.location.hash.slice(1);
                 if (!fileUrl || !hash) {
                     setStatus("Missing file or key");
@@ -42,6 +49,10 @@ export default function DownloadPage() {
                 a.download = `decrypted_file.${fileType}`;
                 a.click();
                 setStatus("Download triggered");
+
+                if(id) {
+                    await deleteFileMutation.mutateAsync({id: Number(id)})
+                }
             } catch (err) {
                 console.error(err);
                 setStatus("Failed to decrypt/download");
@@ -49,7 +60,8 @@ export default function DownloadPage() {
         };
 
         run();
-    }, [searchParams]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <div className="min-h-screen flex items-center justify-center">
