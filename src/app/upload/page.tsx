@@ -72,28 +72,31 @@ export default function MultiUploader() {
                                 if (!res)
                                     return alert("error after startUpload");
                                 console.log("this is res: ", res);
-                                let deleteId = undefined
+                                let fileId = undefined
                                 if (deleteOption == "Delete on download") {
                                     const expiry = new Date();
                                     expiry.setMonth(expiry.getMonth() + 1);
 
-                                    const {id} = await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry})
-                                    deleteId = id;
+                                    const {id} = await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry: expiry.toISOString()})
+                                    fileId = id;
                                 } else if(deleteOption == "Delete after 1 day") {
                                     const expiry = new Date();
                                     expiry.setDate(expiry.getDate() + 1);
 
-                                    await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry})
+                                    const {id} = await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry: expiry.toISOString()})
+                                    fileId = id;
                                 } else if(deleteOption == "Delete after 1 week") {
                                     const expiry = new Date();
                                     expiry.setDate(expiry.getDate() + 7);
 
-                                    await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry})
+                                    const {id} = await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry: expiry.toISOString()})
+                                    fileId = id;
                                 } else {
                                     const expiry = new Date();
                                     expiry.setMonth(expiry.getMonth() + 1);
 
-                                    await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry})
+                                    const {id} = await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry: expiry.toISOString()})
+                                    fileId = id;
                                 }
 
                                 const uploadedUrl = res?.[0].ufsUrl as string;
@@ -119,11 +122,7 @@ export default function MultiUploader() {
 
                                 const finalLink = `/f/view?url=${encodeURIComponent(
                                     uploadedUrl
-                                )}&fileType=${fileType}${
-                                    deleteOption == "Delete on download"
-                                        ? `&id=${deleteId}`
-                                        : ""
-                                }#${combinedKey}`;
+                                )}&fileType=${fileType}&id=${fileId}&deleteOnDownload=${deleteOption == "Delete on download"}#${combinedKey}`;
                                 setShareLink(finalLink);
                                 console.log(file.name);
                             }}

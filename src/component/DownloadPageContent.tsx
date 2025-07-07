@@ -4,22 +4,29 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { decodeBase64, decryptBlob } from "@/utils/crypto";
 import { useTRPC } from "@/trpc/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export default function DownloadPageContent() {
     const searchParams = useSearchParams();
     const fileUrl = searchParams.get("url");
     const fileType = searchParams.get("fileType");
-    const id = searchParams.get("id");
+    const id = Number(searchParams.get("id"));
+    const deleteOnDownload = searchParams.get("deleteOnDownload");
 
     const [status, setStatus] = useState("Decrypting...");
 
     const trpc = useTRPC();
     const deleteFileMutation = useMutation(trpc.deleteFile.mutationOptions());
-
+    const {data} = useQuery(trpc.getFileRecord.queryOptions({id}))
+    
     useEffect(() => {
         const run = async () => {
             try {
+                console.log(data);
+                if(!data) {
+                    setStatus("File already expired");
+                    return;
+                }
                 const hash = window.location.hash.slice(1);
                 if (!fileUrl || !hash) {
                     setStatus("Missing file or key");
@@ -50,8 +57,8 @@ export default function DownloadPageContent() {
                 a.click();
                 setStatus("Download triggered");
 
-                if (id) {
-                    await deleteFileMutation.mutateAsync({ id: Number(id) });
+                if (deleteOnDownload) {
+                    await deleteFileMutation.mutateAsync({ id });
                 }
             } catch (err) {
                 console.error(err);
@@ -61,7 +68,7 @@ export default function DownloadPageContent() {
 
         run();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [fileUrl, fileType, id, deleteOnDownload, data]);
 
     return (
         <div className="min-h-screen flex items-center justify-center">

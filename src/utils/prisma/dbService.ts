@@ -1,9 +1,9 @@
 import prisma from "./prisma"
 import { FileExpiry } from "@/generated/prisma/client"
 
-export const addFileUrl = async ({fileLink, expiry}: {fileLink: string, expiry: Date}):Promise<FileExpiry> => {
+export const addFileUrl = async ({fileLink, expiry}: {fileLink: string, expiry: string}):Promise<FileExpiry> => {
     const newFileLink = await prisma.fileExpiry.create({
-        data: {fileLink, expiry}
+        data: {fileLink, expiry: new Date(expiry)}
     })
     return newFileLink
 }
@@ -43,4 +43,15 @@ export const deleteFileUrls = async (ids: number[]) => {
     await prisma.fileExpiry.deleteMany({
         where: {id: {in: ids}}
     })
+}
+
+export const getFlieRecord = async ({id}:{id: number}):Promise<FileExpiry|null> => {
+    console.log("this is id in here: " + id);
+    
+    const result = await prisma.fileExpiry.findUnique({
+        where: {id}
+    })
+    console.log("this is the result we got: ", result);
+    
+    return result
 }

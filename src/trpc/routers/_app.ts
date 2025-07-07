@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { baseProcedure, createTRPCRouter } from "../init";
-import { addFileUrl, deleteFileUrl, deleteFileUrls, getExpiredFileUrl, getFileUrl } from "@/utils/prisma/dbService";
+import { addFileUrl, deleteFileUrl, deleteFileUrls, getExpiredFileUrl, getFileUrl, getFlieRecord } from "@/utils/prisma/dbService";
 import { utapi } from "@/app/api/uploadthing/uploadthing";
 
 export const appRouter = createTRPCRouter({
@@ -8,7 +8,7 @@ export const appRouter = createTRPCRouter({
         .input(
             z.object({
                 fileLink: z.string(),
-                expiry: z.date()
+                expiry: z.string()
             })
         )
         .mutation(async (opts) => {
@@ -39,6 +39,18 @@ export const appRouter = createTRPCRouter({
 
             await deleteFileUrls(expiredFileRecords.map((file) => file.id));
         }),
+    getFileRecord: baseProcedure
+        .input(
+            z.object({
+                id: z.number()
+            })
+        )
+        .query(async (opts) => {
+            const result = await getFlieRecord({id: opts.input.id})
+            console.log("this is result in _app", result);
+            return result;
+            
+        })
     
 });
 // export type definition of API
