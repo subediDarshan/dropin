@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { baseProcedure, createTRPCRouter } from "../init";
-import { addFileUrl, deleteFileUrl, deleteFileUrls, getExpiredFileUrl, getFileUrl, getFlieRecord } from "@/utils/prisma/dbService";
+import { addFileUrl, deleteFileUrl, getFileUrl, getFlieRecord } from "@/utils/prisma/dbService";
 import { utapi } from "@/app/api/uploadthing/uploadthing";
 
 export const appRouter = createTRPCRouter({
@@ -26,18 +26,6 @@ export const appRouter = createTRPCRouter({
             const fileKey = fileUrl.substring(fileUrl.lastIndexOf("/") + 1)
             await utapi.deleteFiles(fileKey);
             await deleteFileUrl({id: opts.input.id})
-        }),
-    deleteExpiredFiles: baseProcedure
-        .mutation(async () => {
-            const expiredFileRecords = await getExpiredFileUrl();
-            const expiredFileUrls = expiredFileRecords.map((file) => file.fileLink)
-            const expiredFileKeys = expiredFileUrls.map((fileUrl) => fileUrl.substring(fileUrl.lastIndexOf("/") + 1))
-            
-            if(expiredFileKeys.length == 0) return;
-            
-            await utapi.deleteFiles(expiredFileKeys);
-
-            await deleteFileUrls(expiredFileRecords.map((file) => file.id));
         }),
     getFileRecord: baseProcedure
         .input(

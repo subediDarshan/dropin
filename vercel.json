@@ -1,0 +1,8 @@
+{
+    "crons": [
+        {
+            "path": "/api/trpc/deleteExpiredFiles",
+            "schedule": "0 5 * * *"
+        }
+    ]
+}
