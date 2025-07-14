@@ -10,7 +10,6 @@ export async function POST(request: NextRequest) {
         });
     }
 
-
     const expiredFileRecords = await getExpiredFileUrl();
     const expiredFileUrls = expiredFileRecords.map((file) => file.fileLink);
     const expiredFileKeys = expiredFileUrls.map((fileUrl) =>
@@ -21,7 +20,12 @@ export async function POST(request: NextRequest) {
 
     await utapi.deleteFiles(expiredFileKeys);
 
-    await deleteFileUrls(expiredFileRecords.map((file) => file.id));
+    const { count } = await deleteFileUrls(
+        expiredFileRecords.map((file) => file.id)
+    );
 
-    return Response.json({message: "Cron job ran successfully"})
+    return Response.json({
+        message: "Cron job ran successfully",
+        deletedFileCount: count,
+    });
 }

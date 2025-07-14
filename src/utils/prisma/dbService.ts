@@ -39,8 +39,8 @@ export const getExpiredFileUrl = async ():Promise<FileExpiry[]> => {
     return result;
 }
 
-export const deleteFileUrls = async (ids: number[]) => {
-    await prisma.fileExpiry.deleteMany({
+export const deleteFileUrls = async (ids: number[]):Promise<{count: number}> => {
+    return await prisma.fileExpiry.deleteMany({
         where: {id: {in: ids}}
     })
 }
