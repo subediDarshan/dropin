@@ -1,5 +1,5 @@
 import prisma from "./prisma"
-import { FileExpiry } from "@/generated/prisma/client"
+import { FileExpiry } from "@/generated/prisma"
 
 export const addFileUrl = async ({fileLink, expiry}: {fileLink: string, expiry: string}):Promise<FileExpiry> => {
     const newFileLink = await prisma.fileExpiry.create({

@@ -1,7 +1,0 @@
-{
-    "functions": {
-        "app/api/trpc/**/*.ts": {
-            "includeFiles": "src/generated/prisma/**"
-        }
-    }
-}
