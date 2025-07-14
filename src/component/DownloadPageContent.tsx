@@ -13,11 +13,11 @@ export default function DownloadPageContent() {
     const id = Number(searchParams.get("id"));
     const deleteOnDownload = searchParams.get("deleteOnDownload");
 
-    const [status, setStatus] = useState("Decrypting...");
+    const [status, setStatus] = useState("Accessing file...");
 
     const trpc = useTRPC();
     const deleteFileMutation = useMutation(trpc.deleteFile.mutationOptions());
-    const {data} = useQuery(trpc.getFileRecord.queryOptions({id}))
+    const {data, isLoading, isError} = useQuery(trpc.getFileRecord.queryOptions({id}))
     
     useEffect(() => {
         const run = async () => {
@@ -27,6 +27,7 @@ export default function DownloadPageContent() {
                     setStatus("File already expired");
                     return;
                 }
+                setStatus("Decrypting...");
                 const hash = window.location.hash.slice(1);
                 if (!fileUrl || !hash) {
                     setStatus("Missing file or key");
@@ -65,10 +66,12 @@ export default function DownloadPageContent() {
                 setStatus("Failed to decrypt/download");
             }
         };
-
-        run();
+        
+        if(!isLoading && !isError) {
+            run();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fileUrl, fileType, id, deleteOnDownload, data]);
+    }, [fileUrl, fileType, id, deleteOnDownload, data, isLoading, isError]);
 
     return (
         <div className="min-h-screen flex items-center justify-center">
