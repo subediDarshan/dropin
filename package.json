@@ -19,6 +19,7 @@
     "client-only": "^0.0.1",
     "file-type": "^21.0.0",
     "next": "15.3.4",
+    "prisma": "^6.11.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1",
@@ -33,7 +34,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
-    "prisma": "^6.11.1",
     "tailwindcss": "^4",
     "tsx": "^4.20.3",
     "typescript": "^5"
