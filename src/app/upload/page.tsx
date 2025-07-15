@@ -14,17 +14,17 @@ import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
 
 export default function MultiUploader() {
-    const [files, setFiles] = useState<File[]>([]);
+    const [file, setFile] = useState<File | null>(null);
     const [shareLink, setShareLink] = useState<string | null>(null);
     const [deleteOption, setDeleteOption] =
         useState<string>("Delete on download");
 
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        setFiles(acceptedFiles);
+    const onDrop = useCallback((acceptedFile: File[]) => {
+        setFile(acceptedFile?.[0]);
     }, []);
 
-    const trpc = useTRPC()
-    const addFileUrl = useMutation(trpc.addFileUrl.mutationOptions())
+    const trpc = useTRPC();
+    const addFileUrl = useMutation(trpc.addFileUrl.mutationOptions());
 
     const { startUpload, routeConfig } = useUploadThing("fileUploader", {
         onClientUploadComplete: () => {
@@ -47,91 +47,104 @@ export default function MultiUploader() {
 
     return (
         <>
-            <div {...getRootProps()}>
+            
+
+
+
+
+            <div {...getRootProps()} className="w-3/4 bg-amber-400 h-96 flex items-center justify-center">
                 <input {...getInputProps()} />
-                <div>
-                    {files.length > 0 && (
-                        <button
-                            onClick={async () => {
-                                const file = files?.[0];
-                                if (!file) return;
+                <div>Drop file here!</div>
+            </div>
+            <div>
+                {file && (
+                    <button
+                        onClick={async () => {
+                            if (!file) return;
 
-                                // Generate key + IV
-                                const key = await generateAESKey();
-                                const { encryptedBlob, iv } = await encryptFile(
-                                    file,
-                                    key
+                            // Generate key + IV
+                            const key = await generateAESKey();
+                            const { encryptedBlob, iv } = await encryptFile(
+                                file,
+                                key
+                            );
+
+                            const res = await startUpload([
+                                new File([encryptedBlob], file.name + ".enc"),
+                            ]);
+                            if (!res) return alert("error after startUpload");
+                            console.log("this is res: ", res);
+                            let fileId = undefined;
+                            if (deleteOption == "Delete on download") {
+                                const expiry = new Date();
+                                expiry.setMonth(expiry.getMonth() + 1);
+
+                                const { id } = await addFileUrl.mutateAsync({
+                                    fileLink: res?.[0].serverData.file_url,
+                                    expiry: expiry.toISOString(),
+                                });
+                                fileId = id;
+                            } else if (deleteOption == "Delete after 1 day") {
+                                const expiry = new Date();
+                                expiry.setDate(expiry.getDate() + 1);
+
+                                const { id } = await addFileUrl.mutateAsync({
+                                    fileLink: res?.[0].serverData.file_url,
+                                    expiry: expiry.toISOString(),
+                                });
+                                fileId = id;
+                            } else if (deleteOption == "Delete after 1 week") {
+                                const expiry = new Date();
+                                expiry.setDate(expiry.getDate() + 7);
+
+                                const { id } = await addFileUrl.mutateAsync({
+                                    fileLink: res?.[0].serverData.file_url,
+                                    expiry: expiry.toISOString(),
+                                });
+                                fileId = id;
+                            } else {
+                                const expiry = new Date();
+                                expiry.setMonth(expiry.getMonth() + 1);
+
+                                const { id } = await addFileUrl.mutateAsync({
+                                    fileLink: res?.[0].serverData.file_url,
+                                    expiry: expiry.toISOString(),
+                                });
+                                fileId = id;
+                            }
+
+                            const uploadedUrl = res?.[0].ufsUrl as string;
+                            if (!uploadedUrl) return alert("Upload failed");
+                            const keyData = await crypto.subtle.exportKey(
+                                "raw",
+                                key
+                            );
+                            const combinedKey = encodeBase64(
+                                new Uint8Array([
+                                    ...new Uint8Array(keyData),
+                                    ...iv,
+                                ])
+                            );
+
+                            let fileType = (await fileTypeFromBlob(file))?.ext;
+                            if (!fileType) {
+                                fileType = file.name.substring(
+                                    file.name.lastIndexOf(".") + 1
                                 );
+                            }
 
-                                const res = await startUpload([
-                                    new File(
-                                        [encryptedBlob],
-                                        file.name + ".enc"
-                                    ),
-                                ]);
-                                if (!res)
-                                    return alert("error after startUpload");
-                                console.log("this is res: ", res);
-                                let fileId = undefined
-                                if (deleteOption == "Delete on download") {
-                                    const expiry = new Date();
-                                    expiry.setMonth(expiry.getMonth() + 1);
-
-                                    const {id} = await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry: expiry.toISOString()})
-                                    fileId = id;
-                                } else if(deleteOption == "Delete after 1 day") {
-                                    const expiry = new Date();
-                                    expiry.setDate(expiry.getDate() + 1);
-
-                                    const {id} = await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry: expiry.toISOString()})
-                                    fileId = id;
-                                } else if(deleteOption == "Delete after 1 week") {
-                                    const expiry = new Date();
-                                    expiry.setDate(expiry.getDate() + 7);
-
-                                    const {id} = await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry: expiry.toISOString()})
-                                    fileId = id;
-                                } else {
-                                    const expiry = new Date();
-                                    expiry.setMonth(expiry.getMonth() + 1);
-
-                                    const {id} = await addFileUrl.mutateAsync({fileLink: res?.[0].serverData.file_url, expiry: expiry.toISOString()})
-                                    fileId = id;
-                                }
-
-                                const uploadedUrl = res?.[0].ufsUrl as string;
-                                if (!uploadedUrl) return alert("Upload failed");
-                                const keyData = await crypto.subtle.exportKey(
-                                    "raw",
-                                    key
-                                );
-                                const combinedKey = encodeBase64(
-                                    new Uint8Array([
-                                        ...new Uint8Array(keyData),
-                                        ...iv,
-                                    ])
-                                );
-
-                                let fileType = (await fileTypeFromBlob(file))
-                                    ?.ext;
-                                if (!fileType) {
-                                    fileType = file.name.substring(
-                                        file.name.lastIndexOf(".") + 1
-                                    );
-                                }
-
-                                const finalLink = `/f/view?url=${encodeURIComponent(
-                                    uploadedUrl
-                                )}&fileType=${fileType}&id=${fileId}&deleteOnDownload=${deleteOption == "Delete on download"}#${combinedKey}`;
-                                setShareLink(finalLink);
-                                console.log(file.name);
-                            }}
-                        >
-                            Upload {files.length} files
-                        </button>
-                    )}
-                </div>
-                Drop files here!
+                            const finalLink = `/f/view?url=${encodeURIComponent(
+                                uploadedUrl
+                            )}&fileType=${fileType}&id=${fileId}&deleteOnDownload=${
+                                deleteOption == "Delete on download"
+                            }#${combinedKey}`;
+                            setShareLink(finalLink);
+                            console.log(file.name);
+                        }}
+                    >
+                        Upload file
+                    </button>
+                )}
             </div>
             <div>
                 <label htmlFor="deleteOption">Delete Option</label>
