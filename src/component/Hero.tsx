@@ -24,9 +24,6 @@ function Hero() {
     const addFileUrl = useMutation(trpc.addFileUrl.mutationOptions());
 
     const { startUpload, routeConfig } = useUploadThing("fileUploader", {
-        // onClientUploadComplete: () => {
-        //     setIsUploading(false);
-        // },
         onUploadError: () => {
             alert("Error occurred while uploading");
             setIsUploading(false);
@@ -160,192 +157,260 @@ function Hero() {
     };
 
     return (
-        <section className="container mx-auto w-full flex flex-col lg:flex-row gap-4 lg:gap-10">
-            {/* Left Panel - Information */}
-            <div className="border-4 border-[#56A2E8] rounded-4xl w-full lg:w-1/2 min-h-[600px] lg:min-h-[700px]">
-                <div className="p-4 lg:p-8 h-full flex flex-col">
-                    <div className="mb-4 leading-tight">
-                        <div className="text-3xl lg:text-5xl font-bold mb-3">
-                            <div className="flex items-center gap-2 lg:gap-4 flex-wrap">
-                                <FaRocket className="text-[#FF8383] flex-shrink-0" />
-                                <span className="bg-gradient-to-r from-[#56A2E8] to-[#3A994C] bg-clip-text text-transparent">
-                                    Lightning Fast
-                                </span>
-                                <span className="bg-gradient-to-r from-[#FF8383] to-[#56A2E8] bg-clip-text text-transparent">
-                                    File Sharing
-                                </span>
+        <div className="space-y-8">
+            <section className="container mx-auto w-full flex flex-col lg:flex-row gap-4 lg:gap-10">
+                {/* Left Panel - Information */}
+                <div className="border-4 border-[#56A2E8] rounded-4xl w-full lg:w-1/2 min-h-[600px] lg:min-h-[700px]">
+                    <div className="p-4 lg:p-8 h-full flex flex-col">
+                        <div className="mb-4 leading-tight">
+                            <div className="text-3xl lg:text-5xl font-bold mb-3">
+                                <div className="flex items-center gap-2 lg:gap-4 flex-wrap">
+                                    <FaRocket className="text-[#FF8383] flex-shrink-0" />
+                                    <span className="bg-gradient-to-r from-[#56A2E8] to-[#3A994C] bg-clip-text text-transparent">
+                                        Lightning Fast
+                                    </span>
+                                    <span className="bg-gradient-to-r from-[#FF8383] to-[#56A2E8] bg-clip-text text-transparent">
+                                        File Sharing
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            {/* Tagline */}
+                            <div className="mb-3 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-[#56A2E8]">
+                                <div className="text-sm lg:text-lg font-semibold text-center text-gray-800 dark:text-gray-200">
+                                    <span className="text-[#56A2E8]">📤 Upload a file</span>
+                                    <span className="mx-2 text-gray-500">→</span>
+                                    <span className="text-[#3A994C]">🔗 Get a unique link</span>
+                                    <span className="mx-2 text-gray-500">→</span>
+                                    <span className="text-[#FF8383]">🚀 And share it</span>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 text-sm lg:text-lg text-gray-700 dark:text-gray-300 mb-2">
+                                <FaShieldAlt className="text-[#3A994C] flex-shrink-0" />
+                                <span>Secure • Temporary • Hassle-free</span>
+                            </div>
+                            <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                <FaBolt className="text-[#FF8383] flex-shrink-0" />
+                                No sign-up needed
                             </div>
                         </div>
                         
-                        {/* Tagline */}
-                        <div className="mb-3 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-[#56A2E8]">
-                            <div className="text-sm lg:text-lg font-semibold text-center text-gray-800 dark:text-gray-200">
-                                <span className="text-[#56A2E8]">📤 Upload a file</span>
-                                <span className="mx-2 text-gray-500">→</span>
-                                <span className="text-[#3A994C]">🔗 Get a unique link</span>
-                                <span className="mx-2 text-gray-500">→</span>
-                                <span className="text-[#FF8383]">🚀 And share it</span>
+                        <div>
+                            <div className="text-lg mb-2 font-bold text-[#56A2E8]">
+                                ⚡ Upload Limits
                             </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-sm lg:text-lg text-gray-700 dark:text-gray-300 mb-2">
-                            <FaShieldAlt className="text-[#3A994C] flex-shrink-0" />
-                            <span>Secure • Temporary • Hassle-free</span>
-                        </div>
-                        <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                            <FaBolt className="text-[#FF8383] flex-shrink-0" />
-                            No sign-up needed
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div className="text-lg mb-2 font-bold text-[#56A2E8]">
-                            ⚡ Upload Limits
-                        </div>
-                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 border-2 border-gray-200 h-full">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {data.map((item, index) => (
-                                    <div
-                                        key={index}
-                                        className="bg-white rounded-lg p-2 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-lg flex-shrink-0">{item.icon}</span>
-                                            <div className="min-w-0">
-                                                <div className="font-semibold text-gray-800 text-xs truncate">
-                                                    {item.type}
-                                                </div>
-                                                <div className="text-[#56A2E8] font-bold text-sm">
-                                                    {item.size}
+                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 border-2 border-gray-200 h-full">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {data.map((item, index) => (
+                                        <div
+                                            key={index}
+                                            className="bg-white rounded-lg p-2 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg flex-shrink-0">{item.icon}</span>
+                                                <div className="min-w-0">
+                                                    <div className="font-semibold text-gray-800 text-xs truncate">
+                                                        {item.type}
+                                                    </div>
+                                                    <div className="text-[#56A2E8] font-bold text-sm">
+                                                        {item.size}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            {/* Right Panel - Upload */}
-            <div className="border-4 border-[#56A2E8] rounded-4xl w-full lg:w-1/2 min-h-[600px] lg:min-h-[700px]">
-                <div className="p-4 lg:p-8 h-full flex flex-col">
-                    <div className="text-xl lg:text-2xl mb-4 font-bold text-[#3A994C]">
-                        🚀 Upload Your File
-                    </div>
-                    
-                    {!file ? (
-                        <div className="flex-1 flex flex-col">
-                            <div
-                                {...getRootProps()}
-                                className={`flex-1 border-4 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
-                                    isDragActive 
-                                        ? 'border-[#3A994C] bg-green-50 scale-105' 
-                                        : 'border-gray-400 hover:border-[#56A2E8] hover:bg-blue-50 hover:text-black'
-                                }`}
-                            >
-                                <input {...getInputProps()} />
-                                <div className="text-center p-4">
-                                    <FaUpload className={`text-4xl lg:text-6xl mb-4 transition-colors mx-auto ${
-                                        isDragActive ? 'text-[#3A994C]' : 'text-gray-400'
-                                    }`} />
-                                    <div className="text-lg lg:text-xl font-semibold text-black dark:text-white mb-2">
-                                        {isDragActive ? 'Drop it like it\'s hot! 🔥' : 'Drag & Drop Magic ✨'}
-                                    </div>
-                                    <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400">
-                                        or click to browse your files
+                
+                {/* Right Panel - Upload */}
+                <div className="border-4 border-[#56A2E8] rounded-4xl w-full lg:w-1/2 min-h-[600px] lg:min-h-[700px]">
+                    <div className="p-4 lg:p-8 h-full flex flex-col">
+                        <div className="text-xl lg:text-2xl mb-4 font-bold text-[#3A994C]">
+                            🚀 Upload Your File
+                        </div>
+                        
+                        {!file ? (
+                            <div className="flex-1 flex flex-col">
+                                <div
+                                    {...getRootProps()}
+                                    className={`flex-1 border-4 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
+                                        isDragActive 
+                                            ? 'border-[#3A994C] bg-green-50 scale-105' 
+                                            : 'border-gray-400 hover:border-[#56A2E8] hover:bg-blue-50 hover:text-black'
+                                    }`}
+                                >
+                                    <input {...getInputProps()} />
+                                    <div className="text-center p-4">
+                                        <FaUpload className={`text-4xl lg:text-6xl mb-4 transition-colors mx-auto ${
+                                            isDragActive ? 'text-[#3A994C]' : 'text-gray-400'
+                                        }`} />
+                                        <div className="text-lg lg:text-xl font-semibold text-black dark:text-white mb-2">
+                                            {isDragActive ? 'Drop it like it\'s hot! 🔥' : 'Drag & Drop Magic ✨'}
+                                        </div>
+                                        <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400">
+                                            or click to browse your files
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="flex-1 flex flex-col">
-                            <div className="bg-gradient-to-r from-green-50 to-blue-50 border-4 border-[#3A994C] rounded-2xl p-4 mb-4">
-                                <div className="flex items-center mb-3">
-                                    <FaFile className="text-[#3A994C] text-xl mr-3 flex-shrink-0" />
-                                    <div className="min-w-0">
-                                        <div className="text-lg font-semibold text-black  truncate">
-                                            {file.name}
-                                        </div>
-                                        <div className="text-sm text-gray-700 dark:text-gray-500">
-                                            Size: {formatFileSize(file.size)}
+                        ) : (
+                            <div className="flex-1 flex flex-col">
+                                <div className="bg-gradient-to-r from-green-50 to-blue-50 border-4 border-[#3A994C] rounded-2xl p-4 mb-4">
+                                    <div className="flex items-center mb-3">
+                                        <FaFile className="text-[#3A994C] text-xl mr-3 flex-shrink-0" />
+                                        <div className="min-w-0">
+                                            <div className="text-lg font-semibold text-black  truncate">
+                                                {file.name}
+                                            </div>
+                                            <div className="text-sm text-gray-700 dark:text-gray-500">
+                                                Size: {formatFileSize(file.size)}
+                                            </div>
                                         </div>
                                     </div>
+                                    
+                                    <div className="mb-3">
+                                        <label className="block text-sm font-medium text-black  mb-2">
+                                            🗓️ Deletion Policy
+                                        </label>
+                                        <select
+                                            value={deleteOption}
+                                            onChange={(e) => setDeleteOption(e.target.value)}
+                                            className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-[#56A2E8] focus:outline-none bg-white dark:bg-gray-800 text-black dark:text-white text-sm"
+                                        >
+                                            <option value="Delete on download">🔥 Delete on download</option>
+                                            <option value="Delete after 1 day">📅 Delete after 1 day</option>
+                                            <option value="Delete after 1 week">🗓️ Delete after 1 week</option>
+                                            <option value="Delete after 1 month">📆 Delete after 1 month</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <button
+                                        onClick={handleUpload}
+                                        disabled={isUploading}
+                                        className={`w-full py-2 px-4 rounded-lg font-semibold transition-all text-sm ${
+                                            isUploading 
+                                                ? 'bg-gray-400 cursor-not-allowed' 
+                                                : 'bg-[#3A994C] hover:bg-green-600 active:scale-95'
+                                        } text-white`}
+                                    >
+                                        {isUploading ? '🚀 Uploading...' : '🚀 Upload & Generate Link'}
+                                    </button>
                                 </div>
                                 
-                                <div className="mb-3">
-                                    <label className="block text-sm font-medium text-black  mb-2">
-                                        🗓️ Deletion Policy
-                                    </label>
-                                    <select
-                                        value={deleteOption}
-                                        onChange={(e) => setDeleteOption(e.target.value)}
-                                        className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-[#56A2E8] focus:outline-none bg-white dark:bg-gray-800 text-black dark:text-white text-sm"
-                                    >
-                                        <option value="Delete on download">🔥 Delete on download</option>
-                                        <option value="Delete after 1 day">📅 Delete after 1 day</option>
-                                        <option value="Delete after 1 week">🗓️ Delete after 1 week</option>
-                                        <option value="Delete after 1 month">📆 Delete after 1 month</option>
-                                    </select>
-                                </div>
+                                {shareLink && (
+                                    <div className="border-4 border-[#FF8383] rounded-2xl p-4 mb-3">
+                                        <div className="text-lg font-semibold mb-3 flex items-center text-[#FF8383]">
+                                            <FaLink className="mr-2 flex-shrink-0" />
+                                            🎉 Your Magic Link is Ready!
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                value={window.location.origin + shareLink}
+                                                readOnly
+                                                className="flex-1 p-2 border-2 border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 text-black dark:text-white font-mono text-xs min-w-0"
+                                            />
+                                            <button
+                                                onClick={copyToClipboard}
+                                                className={`p-2 rounded-lg transition-all flex-shrink-0 ${
+                                                    linkCopied 
+                                                        ? 'bg-[#3A994C] text-white scale-110' 
+                                                        : 'bg-[#56A2E8] text-white hover:bg-blue-600 active:scale-95'
+                                                }`}
+                                            >
+                                                {linkCopied ? <FaCheck /> : <FaCopy />}
+                                            </button>
+                                        </div>
+                                        {linkCopied && (
+                                            <div className="text-[#3A994C] text-sm mt-2 font-semibold">
+                                                ✅ Link copied! Share away!
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                                 
                                 <button
-                                    onClick={handleUpload}
-                                    disabled={isUploading}
-                                    className={`w-full py-2 px-4 rounded-lg font-semibold transition-all text-sm ${
-                                        isUploading 
-                                            ? 'bg-gray-400 cursor-not-allowed' 
-                                            : 'bg-[#3A994C] hover:bg-green-600 active:scale-95'
-                                    } text-white`}
+                                    onClick={resetUpload}
+                                    className="py-2 px-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all active:scale-95 font-semibold text-sm"
                                 >
-                                    {isUploading ? '🚀 Uploading...' : '🚀 Upload & Generate Link'}
+                                    🔄 Upload Another File
                                 </button>
                             </div>
-                            
-                            {shareLink && (
-                                <div className="border-4 border-[#FF8383] rounded-2xl p-4 mb-3">
-                                    <div className="text-lg font-semibold mb-3 flex items-center text-[#FF8383]">
-                                        <FaLink className="mr-2 flex-shrink-0" />
-                                        🎉 Your Magic Link is Ready!
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="text"
-                                            value={window.location.origin + shareLink}
-                                            readOnly
-                                            className="flex-1 p-2 border-2 border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 text-black dark:text-white font-mono text-xs min-w-0"
-                                        />
-                                        <button
-                                            onClick={copyToClipboard}
-                                            className={`p-2 rounded-lg transition-all flex-shrink-0 ${
-                                                linkCopied 
-                                                    ? 'bg-[#3A994C] text-white scale-110' 
-                                                    : 'bg-[#56A2E8] text-white hover:bg-blue-600 active:scale-95'
-                                            }`}
-                                        >
-                                            {linkCopied ? <FaCheck /> : <FaCopy />}
-                                        </button>
-                                    </div>
-                                    {linkCopied && (
-                                        <div className="text-[#3A994C] text-sm mt-2 font-semibold">
-                                            ✅ Link copied! Share away!
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            
-                            <button
-                                onClick={resetUpload}
-                                className="py-2 px-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all active:scale-95 font-semibold text-sm"
-                            >
-                                🔄 Upload Another File
-                            </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+
+            {/* Why Dropin Section */}
+            <section className="container mx-auto w-full">
+                <div className="border-4 border-[#3A994C] rounded-4xl p-6 lg:p-8">
+                    <div className="text-center mb-8">
+                        <div className="text-3xl lg:text-4xl font-bold mb-4">
+                            <div className="flex items-center justify-center gap-3 mb-4">
+                                <FaRocket className="text-[#FF8383]" />
+                                <span className="bg-gradient-to-r from-[#56A2E8] to-[#3A994C] bg-clip-text text-transparent">
+                                    Why Choose Dropin?
+                                </span>
+                            </div>
+                        </div>
+                        <div className="text-lg text-gray-600 dark:text-gray-400">
+                            Built for privacy, designed for simplicity
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-6 border-2 border-[#56A2E8] hover:scale-105 transition-transform">
+                            <div className="flex items-center gap-3 mb-4">
+                                <FaShieldAlt className="text-[#3A994C] text-2xl" />
+                                <span className="font-bold text-xl text-gray-800">End-to-End Encryption</span>
+                            </div>
+                            <p className="text-gray-700">
+                                Your files are encrypted before upload and only you have the key. We can&apos;t see your files - your privacy is guaranteed!
+                            </p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-green-50 to-red-50 rounded-2xl p-6 border-2 border-[#3A994C] hover:scale-105 transition-transform">
+                            <div className="flex items-center gap-3 mb-4">
+                                <FaBolt className="text-[#FF8383] text-2xl" />
+                                <span className="font-bold text-xl text-gray-800">No Sign-up Required</span>
+                            </div>
+                            <p className="text-gray-700">
+                                Just drag, drop, and share! No accounts to create, no personal information to provide, no tracking. Pure simplicity.
+                            </p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-red-50 to-blue-50 rounded-2xl p-6 border-2 border-[#FF8383] hover:scale-105 transition-transform">
+                            <div className="flex items-center gap-3 mb-4">
+                                <FaFile className="text-[#56A2E8] text-2xl" />
+                                <span className="font-bold text-xl text-gray-800">Temporary & Secure</span>
+                            </div>
+                            <p className="text-gray-700">
+                                Files auto-delete after download or expiry. No permanent storage means your data doesn&apos;t linger around.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div className="text-center mt-8">
+                        <div className="inline-block p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl border-2 border-[#56A2E8]">
+                            <div className="text-lg font-semibold text-gray-800 mb-2">
+                                ✨ The modern way to share files securely
+                            </div>
+                            <div className="text-sm text-gray-600">
+                                <span className="text-[#56A2E8]">📤 Upload</span>
+                                <span className="mx-2">→</span>
+                                <span className="text-[#3A994C]">🔗 Share</span>
+                                <span className="mx-2">→</span>
+                                <span className="text-[#FF8383]">🚀 Done</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
     );
 }
 
