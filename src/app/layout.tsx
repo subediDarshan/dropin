@@ -25,15 +25,15 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className="h-full">
+        <html lang="en">
             <body
-                className={`h-full ${geistSans.variable} ${geistMono.variable} antialiased`}
+                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                <div className="h-full w-full px-8 py-8">
-                    <div className="h-full w-full border-4 border-[#3A994C] rounded-4xl pt-4 pb-8 px-4 flex flex-col">
+                <div className="w-full px-4 sm:px-8 py-4 sm:py-8 min-h-screen">
+                    <div className="w-full border-4 border-[#3A994C] rounded-4xl pt-4 pb-8 px-4 min-h-[calc(100vh-2rem)] sm:min-h-[calc(100vh-4rem)]">
                         <TRPCReactProvider>
                             <Navbar />
-                            <div className="flex-1">
+                            <div className="mt-4">
                                 {children}
                             </div>
                         </TRPCReactProvider>

@@ -1,142 +1,142 @@
-// import React from "react";
-
-// function Hero() {
-//     const data = [
-//         { type: "image", size: "4MB" },
-//         { type: "video", size: "16MB" },
-//         { type: "audio", size: "8MB" },
-//         { type: "blob", size: "8MB" },
-//         { type: "pdf", size: "4MB" },
-//         { type: "text", size: "64kB" },
-//     ];
-
-//     return (
-//         <>
-//             <section className="container mx-auto w-full h-full flex flex-col justify-between md:flex-row gap-10 pt-4">
-//                 <div className="border-4 border-[#56A2E8] rounded-4xl md:w-1/2 h-1/2 md:h-1/1 p-8 flex flex-col">
-//                     <div className="text-4xl">
-//                         Upload a file
-//                         <br />
-//                         Get a unique link
-//                         <br />
-//                         And share it
-//                         <br />
-//                         No sign-up needed.
-//                         <br />
-//                         Secure, temporary, and hassle-free.
-//                     </div>
-//                     <div>
-//                         Instructions:
-//                         <div className="max-w-md mx-auto mt-10 rounded-lg overflow-hidden border border-gray-700">
-//                             <table className="w-full text-left text-sm text-white bg-[#1e1e1e]">
-//                                 <thead className="bg-[#2a2a2a] border-b border-gray-600">
-//                                     <tr>
-//                                         <th className="px-4 py-3 font-medium">
-//                                             File Type
-//                                         </th>
-//                                         <th className="px-4 py-3 font-medium">
-//                                             Default Max Size
-//                                         </th>
-//                                     </tr>
-//                                 </thead>
-//                                 <tbody>
-//                                     {data.map((row, index) => (
-//                                         <tr
-//                                             key={index}
-//                                             className={
-//                                                 index % 2 === 0
-//                                                     ? "bg-[#1e1e1e]"
-//                                                     : "bg-[#2a2a2a]"
-//                                             }
-//                                         >
-//                                             <td className="px-4 py-2">
-//                                                 {row.type}
-//                                             </td>
-//                                             <td className="px-4 py-2">
-//                                                 {row.size}
-//                                             </td>
-//                                         </tr>
-//                                     ))}
-//                                 </tbody>
-//                             </table>
-//                         </div>
-//                     </div>
-//                 </div>
-//                 <div className="border-4 border-[#56A2E8] rounded-4xl md:w-3/8 h-1/2 md:h-1/1 p-8">
-//                     2
-//                 </div>
-//             </section>
-//         </>
-//     );
-// }
-
-// export default Hero;
-
-
-
 "use client";
 
-import React, { useState, useRef } from "react";
-import { FaUpload, FaFile, FaLink, FaCheck, FaCopy } from "react-icons/fa";
+import React, { useState, useCallback } from "react";
+import { FaUpload, FaFile, FaLink, FaCheck, FaCopy, FaRocket, FaShieldAlt, FaBolt } from "react-icons/fa";
+import { useDropzone } from "@uploadthing/react";
+import {
+    generateClientDropzoneAccept,
+    generatePermittedFileTypes,
+} from "uploadthing/client";
+import { useUploadThing } from "@/utils/uploadthing";
+import { encodeBase64, encryptFile, generateAESKey } from "@/utils/crypto";
+import { fileTypeFromBlob } from "file-type";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 
 function Hero() {
-    const [dragActive, setDragActive] = useState(false);
-    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-    const [generatedLink, setGeneratedLink] = useState<string>("");
+    const [file, setFile] = useState<File | null>(null);
+    const [shareLink, setShareLink] = useState<string | null>(null);
+    const [deleteOption, setDeleteOption] = useState<string>("Delete on download");
     const [linkCopied, setLinkCopied] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const trpc = useTRPC();
+    const addFileUrl = useMutation(trpc.addFileUrl.mutationOptions());
+
+    const { startUpload, routeConfig } = useUploadThing("fileUploader", {
+        onClientUploadComplete: () => {
+            setIsUploading(false);
+        },
+        onUploadError: () => {
+            alert("Error occurred while uploading");
+            setIsUploading(false);
+        },
+        onUploadBegin: (fileKey: string) => {
+            console.log("Upload has begun for", fileKey);
+            setIsUploading(true);
+        },
+    });
+
+    const onDrop = useCallback((acceptedFiles: File[]) => {
+        setFile(acceptedFiles?.[0]);
+        setShareLink(null);
+        setLinkCopied(false);
+    }, []);
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: generateClientDropzoneAccept(
+            generatePermittedFileTypes(routeConfig).fileTypes
+        ),
+    });
 
     const data = [
-        { type: "image", size: "4MB" },
-        { type: "video", size: "16MB" },
-        { type: "audio", size: "8MB" },
-        { type: "blob", size: "8MB" },
-        { type: "pdf", size: "4MB" },
-        { type: "text", size: "64kB" },
+        { type: "Images", size: "4MB", icon: "🖼️" },
+        { type: "Videos", size: "16MB", icon: "🎬" },
+        { type: "Audio", size: "8MB", icon: "🎵" },
+        { type: "Documents", size: "8MB", icon: "📄" },
+        { type: "PDFs", size: "4MB", icon: "📋" },
+        { type: "Text Files", size: "64kB", icon: "📝" },
     ];
 
-    const handleDrag = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true);
-        } else if (e.type === "dragleave") {
-            setDragActive(false);
+    const handleUpload = async () => {
+        if (!file) return;
+
+        try {
+            setIsUploading(true);
+            
+            // Generate key + IV
+            const key = await generateAESKey();
+            const { encryptedBlob, iv } = await encryptFile(file, key);
+
+            const res = await startUpload([
+                new File([encryptedBlob], file.name + ".enc"),
+            ]);
+            
+            if (!res) {
+                alert("Error after startUpload");
+                return;
+            }
+
+            let fileId = undefined;
+            const expiry = new Date();
+            
+            if (deleteOption === "Delete on download") {
+                expiry.setMonth(expiry.getMonth() + 1);
+            } else if (deleteOption === "Delete after 1 day") {
+                expiry.setDate(expiry.getDate() + 1);
+            } else if (deleteOption === "Delete after 1 week") {
+                expiry.setDate(expiry.getDate() + 7);
+            } else if (deleteOption === "Delete after 1 month") {
+                expiry.setMonth(expiry.getMonth() + 1);
+            }
+
+            const { id } = await addFileUrl.mutateAsync({
+                fileLink: res?.[0].serverData.file_url,
+                expiry: expiry.toISOString(),
+            });
+            fileId = id;
+
+            const uploadedUrl = res?.[0].ufsUrl as string;
+            if (!uploadedUrl) {
+                alert("Upload failed");
+                return;
+            }
+
+            const keyData = await crypto.subtle.exportKey("raw", key);
+            const combinedKey = encodeBase64(
+                new Uint8Array([
+                    ...new Uint8Array(keyData),
+                    ...iv,
+                ])
+            );
+
+            let fileType = (await fileTypeFromBlob(file))?.ext;
+            if (!fileType) {
+                fileType = file.name.substring(file.name.lastIndexOf(".") + 1);
+            }
+
+            const finalLink = `/f/view?url=${encodeURIComponent(
+                uploadedUrl
+            )}&fileType=${fileType}&id=${fileId}&deleteOnDownload=${
+                deleteOption === "Delete on download"
+            }#${combinedKey}`;
+            
+            setShareLink(finalLink);
+        } catch (error) {
+            console.error("Upload error:", error);
+            alert("Upload failed");
+        } finally {
+            setIsUploading(false);
         }
-    };
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setDragActive(false);
-        
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleFile(e.dataTransfer.files[0]);
-        }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        if (e.target.files && e.target.files[0]) {
-            handleFile(e.target.files[0]);
-        }
-    };
-
-    const handleFile = (file: File) => {
-        setUploadedFile(file);
-        // Simulate link generation
-        const mockLink = `https://dropin.app/f/${Math.random().toString(36).substr(2, 9)}`;
-        setGeneratedLink(mockLink);
-        setLinkCopied(false);
-    };
-
-    const onButtonClick = () => {
-        fileInputRef.current?.click();
     };
 
     const copyToClipboard = async () => {
+        if (!shareLink) return;
+        
         try {
-            await navigator.clipboard.writeText(generatedLink);
+            const fullLink = window.location.origin + shareLink;
+            await navigator.clipboard.writeText(fullLink);
             setLinkCopied(true);
             setTimeout(() => setLinkCopied(false), 2000);
         } catch (err) {
@@ -152,151 +152,199 @@ function Hero() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    const resetUpload = () => {
+        setFile(null);
+        setShareLink(null);
+        setLinkCopied(false);
+    };
+
     return (
-        <>
-            <section className="container mx-auto w-full h-full flex flex-col justify-between md:flex-row gap-10 pt-4">
-                <div className="border-4 border-[#56A2E8] rounded-4xl md:w-1/2 h-1/2 md:h-full p-8 flex flex-col">
-                    <div className="text-4xl mb-8">
-                        Upload a file
-                        <br />
-                        Get a unique link
-                        <br />
-                        And share it
-                        <br />
-                        <span className="text-2xl text-gray-600">No sign-up needed.</span>
-                        <br />
-                        <span className="text-2xl text-gray-600">Secure, temporary, and hassle-free.</span>
+        <section className="container mx-auto w-full flex flex-col lg:flex-row gap-4 lg:gap-10">
+            {/* Left Panel - Information */}
+            <div className="border-4 border-[#56A2E8] rounded-4xl w-full lg:w-1/2 min-h-[600px] lg:min-h-[700px]">
+                <div className="p-4 lg:p-8 h-full flex flex-col">
+                    <div className="mb-4 leading-tight">
+                        <div className="text-3xl lg:text-5xl font-bold mb-3">
+                            <div className="flex items-center gap-2 lg:gap-4 flex-wrap">
+                                <FaRocket className="text-[#FF8383] flex-shrink-0" />
+                                <span className="bg-gradient-to-r from-[#56A2E8] to-[#3A994C] bg-clip-text text-transparent">
+                                    Lightning Fast
+                                </span>
+                                <span className="bg-gradient-to-r from-[#FF8383] to-[#56A2E8] bg-clip-text text-transparent">
+                                    File Sharing
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {/* Tagline */}
+                        <div className="mb-3 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-[#56A2E8]">
+                            <div className="text-sm lg:text-lg font-semibold text-center text-gray-800 dark:text-gray-200">
+                                <span className="text-[#56A2E8]">📤 Upload a file</span>
+                                <span className="mx-2 text-gray-500">→</span>
+                                <span className="text-[#3A994C]">🔗 Get a unique link</span>
+                                <span className="mx-2 text-gray-500">→</span>
+                                <span className="text-[#FF8383]">🚀 And share it</span>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-sm lg:text-lg text-gray-700 dark:text-gray-300 mb-2">
+                            <FaShieldAlt className="text-[#3A994C] flex-shrink-0" />
+                            <span>Secure • Temporary • Hassle-free</span>
+                        </div>
+                        <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                            <FaBolt className="text-[#FF8383] flex-shrink-0" />
+                            No sign-up needed
+                        </div>
                     </div>
-                    <div className="flex-1">
-                        <div className="text-xl mb-4">File Size Limits:</div>
-                        <div className="max-w-md mx-auto rounded-lg overflow-hidden border border-gray-700">
-                            <table className="w-full text-left text-sm text-white bg-[#1e1e1e]">
-                                <thead className="bg-[#2a2a2a] border-b border-gray-600">
-                                    <tr>
-                                        <th className="px-4 py-3 font-medium">
-                                            File Type
-                                        </th>
-                                        <th className="px-4 py-3 font-medium">
-                                            Max Size
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.map((row, index) => (
-                                        <tr
-                                            key={index}
-                                            className={
-                                                index % 2 === 0
-                                                    ? "bg-[#1e1e1e]"
-                                                    : "bg-[#2a2a2a]"
-                                            }
-                                        >
-                                            <td className="px-4 py-2 capitalize">
-                                                {row.type}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {row.size}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                    
+                    <div>
+                        <div className="text-lg mb-2 font-bold text-[#56A2E8]">
+                            ⚡ Upload Limits
+                        </div>
+                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 border-2 border-gray-200 h-full">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {data.map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="bg-white rounded-lg p-2 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg flex-shrink-0">{item.icon}</span>
+                                            <div className="min-w-0">
+                                                <div className="font-semibold text-gray-800 text-xs truncate">
+                                                    {item.type}
+                                                </div>
+                                                <div className="text-[#56A2E8] font-bold text-sm">
+                                                    {item.size}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div className="border-4 border-[#56A2E8] rounded-4xl md:w-1/2 h-1/2 md:h-full p-8 flex flex-col">
-                    <div className="text-3xl mb-6">Upload Your File</div>
+            </div>
+            
+            {/* Right Panel - Upload */}
+            <div className="border-4 border-[#56A2E8] rounded-4xl w-full lg:w-1/2 min-h-[600px] lg:min-h-[700px]">
+                <div className="p-4 lg:p-8 h-full flex flex-col">
+                    <div className="text-xl lg:text-2xl mb-4 font-bold text-[#3A994C]">
+                        🚀 Upload Your File
+                    </div>
                     
-                    {!uploadedFile ? (
-                        <div className="flex-1 flex flex-col items-center justify-center">
+                    {!file ? (
+                        <div className="flex-1 flex flex-col">
                             <div
-                                className={`w-full h-64 border-4 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                                    dragActive 
-                                        ? 'border-[#3A994C] bg-green-50' 
-                                        : 'border-gray-400 hover:border-[#56A2E8] hover:bg-blue-50'
+                                {...getRootProps()}
+                                className={`flex-1 border-4 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
+                                    isDragActive 
+                                        ? 'border-[#3A994C] bg-green-50 scale-105' 
+                                        : 'border-gray-400 hover:border-[#56A2E8] hover:bg-blue-50 hover:text-black'
                                 }`}
-                                onDragEnter={handleDrag}
-                                onDragLeave={handleDrag}
-                                onDragOver={handleDrag}
-                                onDrop={handleDrop}
-                                onClick={onButtonClick}
                             >
-                                <FaUpload className="text-6xl text-gray-400 mb-4" />
-                                <div className="text-xl text-gray-600 text-center">
-                                    Drag and drop your file here
-                                    <br />
-                                    or click to browse
+                                <input {...getInputProps()} />
+                                <div className="text-center p-4">
+                                    <FaUpload className={`text-4xl lg:text-6xl mb-4 transition-colors mx-auto ${
+                                        isDragActive ? 'text-[#3A994C]' : 'text-gray-400'
+                                    }`} />
+                                    <div className="text-lg lg:text-xl font-semibold text-black dark:text-white mb-2">
+                                        {isDragActive ? 'Drop it like it\'s hot! 🔥' : 'Drag & Drop Magic ✨'}
+                                    </div>
+                                    <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400">
+                                        or click to browse your files
+                                    </div>
                                 </div>
                             </div>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                className="hidden"
-                                onChange={handleChange}
-                            />
                         </div>
                     ) : (
                         <div className="flex-1 flex flex-col">
-                            <div className="bg-green-50 border-4 border-[#3A994C] rounded-2xl p-6 mb-6">
-                                <div className="flex items-center mb-4">
-                                    <FaCheck className="text-[#3A994C] text-2xl mr-3" />
-                                    <span className="text-xl font-semibold">File Uploaded Successfully!</span>
+                            <div className="bg-gradient-to-r from-green-50 to-blue-50 border-4 border-[#3A994C] rounded-2xl p-4 mb-4">
+                                <div className="flex items-center mb-3">
+                                    <FaFile className="text-[#3A994C] text-xl mr-3 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                        <div className="text-lg font-semibold text-black  truncate">
+                                            {file.name}
+                                        </div>
+                                        <div className="text-sm text-gray-700 dark:text-gray-500">
+                                            Size: {formatFileSize(file.size)}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center mb-2">
-                                    <FaFile className="text-gray-600 mr-2" />
-                                    <span className="font-medium">{uploadedFile.name}</span>
+                                
+                                <div className="mb-3">
+                                    <label className="block text-sm font-medium text-black  mb-2">
+                                        🗓️ Deletion Policy
+                                    </label>
+                                    <select
+                                        value={deleteOption}
+                                        onChange={(e) => setDeleteOption(e.target.value)}
+                                        className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-[#56A2E8] focus:outline-none bg-white dark:bg-gray-800 text-black dark:text-white text-sm"
+                                    >
+                                        <option value="Delete on download">🔥 Delete on download</option>
+                                        <option value="Delete after 1 day">📅 Delete after 1 day</option>
+                                        <option value="Delete after 1 week">🗓️ Delete after 1 week</option>
+                                        <option value="Delete after 1 month">📆 Delete after 1 month</option>
+                                    </select>
                                 </div>
-                                <div className="text-gray-600">
-                                    Size: {formatFileSize(uploadedFile.size)}
-                                </div>
+                                
+                                <button
+                                    onClick={handleUpload}
+                                    disabled={isUploading}
+                                    className={`w-full py-2 px-4 rounded-lg font-semibold transition-all text-sm ${
+                                        isUploading 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-[#3A994C] hover:bg-green-600 active:scale-95'
+                                    } text-white`}
+                                >
+                                    {isUploading ? '🚀 Uploading...' : '🚀 Upload & Generate Link'}
+                                </button>
                             </div>
                             
-                            <div className="border-4 border-[#FF8383] rounded-2xl p-6">
-                                <div className="text-xl font-semibold mb-4 flex items-center">
-                                    <FaLink className="mr-2" />
-                                    Your Share Link:
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={generatedLink}
-                                        readOnly
-                                        className="flex-1 p-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-700"
-                                    />
-                                    <button
-                                        onClick={copyToClipboard}
-                                        className={`p-3 rounded-lg transition-colors ${
-                                            linkCopied 
-                                                ? 'bg-[#3A994C] text-white' 
-                                                : 'bg-[#56A2E8] text-white hover:bg-blue-600'
-                                        }`}
-                                    >
-                                        {linkCopied ? <FaCheck /> : <FaCopy />}
-                                    </button>
-                                </div>
-                                {linkCopied && (
-                                    <div className="text-[#3A994C] text-sm mt-2">
-                                        Link copied to clipboard!
+                            {shareLink && (
+                                <div className="border-4 border-[#FF8383] rounded-2xl p-4 mb-3">
+                                    <div className="text-lg font-semibold mb-3 flex items-center text-[#FF8383]">
+                                        <FaLink className="mr-2 flex-shrink-0" />
+                                        🎉 Your Magic Link is Ready!
                                     </div>
-                                )}
-                            </div>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="text"
+                                            value={window.location.origin + shareLink}
+                                            readOnly
+                                            className="flex-1 p-2 border-2 border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 text-black dark:text-white font-mono text-xs min-w-0"
+                                        />
+                                        <button
+                                            onClick={copyToClipboard}
+                                            className={`p-2 rounded-lg transition-all flex-shrink-0 ${
+                                                linkCopied 
+                                                    ? 'bg-[#3A994C] text-white scale-110' 
+                                                    : 'bg-[#56A2E8] text-white hover:bg-blue-600 active:scale-95'
+                                            }`}
+                                        >
+                                            {linkCopied ? <FaCheck /> : <FaCopy />}
+                                        </button>
+                                    </div>
+                                    {linkCopied && (
+                                        <div className="text-[#3A994C] text-sm mt-2 font-semibold">
+                                            ✅ Link copied! Share away!
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             
                             <button
-                                onClick={() => {
-                                    setUploadedFile(null);
-                                    setGeneratedLink("");
-                                    setLinkCopied(false);
-                                }}
-                                className="mt-6 py-3 px-6 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                                onClick={resetUpload}
+                                className="py-2 px-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all active:scale-95 font-semibold text-sm"
                             >
-                                Upload Another File
+                                🔄 Upload Another File
                             </button>
                         </div>
                     )}
                 </div>
-            </section>
-        </>
+            </div>
+        </section>
     );
 }
 
