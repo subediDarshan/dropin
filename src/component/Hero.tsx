@@ -24,9 +24,9 @@ function Hero() {
     const addFileUrl = useMutation(trpc.addFileUrl.mutationOptions());
 
     const { startUpload, routeConfig } = useUploadThing("fileUploader", {
-        onClientUploadComplete: () => {
-            setIsUploading(false);
-        },
+        // onClientUploadComplete: () => {
+        //     setIsUploading(false);
+        // },
         onUploadError: () => {
             alert("Error occurred while uploading");
             setIsUploading(false);
@@ -123,6 +123,7 @@ function Hero() {
             }#${combinedKey}`;
             
             setShareLink(finalLink);
+            setIsUploading(false);
         } catch (error) {
             console.error("Upload error:", error);
             alert("Upload failed");
