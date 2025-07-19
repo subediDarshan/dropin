@@ -1,7 +1,7 @@
 {
     "crons": [
         {
-            "path": "/api/trpc/deleteExpiredFiles",
+            "path": "/api/deleteExpiredFiles",
             "schedule": "0 5 * * *"
         }
     ]
