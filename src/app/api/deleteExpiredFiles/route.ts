@@ -2,7 +2,7 @@ import { deleteFileUrls, getExpiredFileUrl } from "@/utils/prisma/dbService";
 import { utapi } from "../uploadthing/uploadthing";
 import { NextRequest } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
     const authHeader = request.headers.get("authorization");
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return new Response("Unauthorized", {

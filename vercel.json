@@ -3,7 +3,6 @@
         {
             "path": "/api/deleteExpiredFiles",
             "schedule": "0 5 * * *",
-            "method": "POST"
         }
     ]
 }
